@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 
+
 export default function Signup() {
   const [form, setForm] = useState({ username: '', email: '', password: '' });
   const [message, setMessage] = useState('');
@@ -9,12 +10,14 @@ export default function Signup() {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
+  const backendUrl = process.env.REACT_APP_BACKEND_URL || 'https://railwayapp-production-6cdb.up.railway.app';
+
   const handleSubmit = async e => {
     e.preventDefault();
     setMessage('');
     setError('');
     try {
-      const res = await fetch('https://railwayapp-production-6cdb.up.railway.app/signup', {
+      const res = await fetch(`${backendUrl}/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form)
@@ -27,7 +30,7 @@ export default function Signup() {
         setError(data.error || 'Signup failed');
       }
     } catch (err) {
-      setError('Network error');
+      setError('Network error: ' + err.message);
     }
   };
 
