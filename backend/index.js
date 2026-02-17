@@ -1,7 +1,21 @@
+
 const express = require('express');
 const app = express();
 const { Pool } = require('pg');
 const pool = new Pool();
+
+// Auto-create users table if not exists
+const userTableSql = `
+CREATE TABLE IF NOT EXISTS users (
+  id SERIAL PRIMARY KEY,
+  username VARCHAR(50) UNIQUE NOT NULL,
+  email VARCHAR(255) UNIQUE NOT NULL,
+  password VARCHAR(255) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);`;
+pool.query(userTableSql)
+  .then(() => console.log('Ensured users table exists'))
+  .catch(err => console.error('Error creating users table:', err));
 
 app.use(express.json());
 
@@ -11,19 +25,19 @@ app.get('/', (req, res) => {
 
 // Signup endpoint
 app.post('/signup', async (req, res) => {
-  const { email, password, name } = req.body;
-  if (!email || !password) {
-    return res.status(400).json({ error: 'Email and password required' });
+  const { username, email, password } = req.body;
+  if (!username || !email || !password) {
+    return res.status(400).json({ error: 'Username, email, and password required' });
   }
   try {
     const result = await pool.query(
-      'INSERT INTO users (email, password, name) VALUES ($1, $2, $3) RETURNING id, email, name, created_at',
-      [email, password, name || null]
+      'INSERT INTO users (username, email, password) VALUES ($1, $2, $3) RETURNING id, username, email, created_at',
+      [username, email, password]
     );
     res.status(201).json(result.rows[0]);
   } catch (err) {
     if (err.code === '23505') {
-      res.status(409).json({ error: 'Email already exists' });
+      res.status(409).json({ error: 'Username or email already exists' });
     } else {
       res.status(500).json({ error: 'Database error', details: err.message });
     }
