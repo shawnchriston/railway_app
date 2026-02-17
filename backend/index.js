@@ -4,6 +4,7 @@ const app = express();
 const { Pool } = require('pg');
 const pool = new Pool();
 
+
 // Auto-create users table if not exists
 const userTableSql = `
 CREATE TABLE IF NOT EXISTS users (
@@ -17,6 +18,8 @@ pool.query(userTableSql)
   .then(() => console.log('Ensured users table exists'))
   .catch(err => console.error('Error creating users table:', err));
 
+const cors = require('cors');
+app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
 
 app.get('/', (req, res) => {
