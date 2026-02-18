@@ -1,0 +1,8 @@
+{
+    "chat.tools.terminal.autoApprove": {
+        "/^git add \\. && git commit -m \"Implement user signup, dashboard, and competitions table\" && git push$/": {
+            "approve": true,
+            "matchCommandLine": true
+        }
+    }
+}

@@ -51,3 +51,13 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on port ${PORT}`);
 });
+
+// List all competitions
+app.get('/competitions', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM competitions ORDER BY date ASC');
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: 'Database error', details: err.message });
+  }
+});
