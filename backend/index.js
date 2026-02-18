@@ -19,7 +19,10 @@ pool.query(userTableSql)
   .catch(err => console.error('Error creating users table:', err));
 
 const cors = require('cors');
-app.use(cors({ origin: true, credentials: true }));
+app.use(cors({
+  origin: 'https://frontend-production-ffd6.up.railway.app',
+  credentials: true
+}));
 app.use(express.json());
 
 const session = require('express-session');
