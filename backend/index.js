@@ -22,6 +22,48 @@ const cors = require('cors');
 app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
 
+const session = require('express-session');
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'your_secret',
+  resave: false,
+  saveUninitialized: false,
+  cookie: { secure: false, httpOnly: true }
+}));
+
+const passport = require('passport');
+const LocalStrategy = require('passport-local').Strategy;
+app.use(passport.initialize());
+app.use(passport.session());
+
+passport.serializeUser((user, done) => {
+  done(null, user.id);
+});
+passport.deserializeUser(async (id, done) => {
+  try {
+    const result = await pool.query('SELECT id, username, email FROM users WHERE id = $1', [id]);
+    if (result.rows.length > 0) done(null, result.rows[0]);
+    else done(null, false);
+  } catch (err) {
+    done(err, null);
+  }
+});
+
+passport.use(new LocalStrategy({ usernameField: 'email' }, async (email, password, done) => {
+  try {
+    const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+    if (result.rows.length === 0) return done(null, false, { message: 'Incorrect email.' });
+    const user = result.rows[0];
+    if (user.password !== password) return done(null, false, { message: 'Incorrect password.' });
+    return done(null, user);
+  } catch (err) {
+    return done(err);
+  }
+}));
+
+app.post('/signin', passport.authenticate('local'), (req, res) => {
+  res.json({ id: req.user.id, username: req.user.username, email: req.user.email });
+});
+
 app.get('/', (req, res) => {
   res.send('Hello, World!');
 });
